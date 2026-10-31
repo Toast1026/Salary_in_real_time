@@ -330,7 +330,7 @@
 
   <!-- 1. 獎金試算 Modal -->
   <div id="bonus-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="theme-card border border-slate-700 bg-slate-900 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div class="theme-card border border-slate-700 bg-slate-900 rounded-2xl p-5 sm:p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
       
       <!-- 標題與關閉按鈕 -->
       <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
@@ -344,18 +344,54 @@
       </div>
 
       <div class="space-y-4">
-        <!-- 僅保留兩個輸入欄位：週邊金額與維修件數 -->
-        <div class="grid grid-cols-2 gap-3 bg-black/30 p-3.5 rounded-xl border border-white/5">
-          <!-- 週邊金額 -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">週邊實際金額 (元)</label>
-            <input type="number" id="calc-acc-amount" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="54000" placeholder="例如: 54000">
-          </div>
+        <!-- 輸入欄位：週邊金額、維修件數 -->
+        <div class="space-y-3 bg-black/30 p-3.5 rounded-xl border border-white/5">
+          <div class="grid grid-cols-2 gap-3">
+            <!-- 週邊金額 -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">週邊實際金額 (元)</label>
+              <input type="number" id="calc-acc-amount" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="54000" placeholder="例如: 54000">
+            </div>
 
-          <!-- 維修件數 -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">維修實際件數 (件)</label>
-            <input type="number" id="calc-repair-count" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="60" placeholder="例如: 60">
+            <!-- 維修件數 -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">維修實際件數 (件)</label>
+              <input type="number" id="calc-repair-count" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="60" placeholder="例如: 60">
+            </div>
+          </div>
+        </div>
+
+        <!-- 獎金對照表看板（動態 Highlight） -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-semibold text-slate-400 flex justify-between items-center px-1">
+            <span>官方獎金級距表</span>
+            <span class="text-[10px] text-slate-500">週邊目標 9萬 / 維修 100台</span>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-white/10 bg-black/40">
+            <table class="w-full text-center text-xs border-collapse">
+              <thead>
+                <tr class="bg-amber-500/10 text-amber-300 font-bold border-b border-white/10 text-[11px]">
+                  <th class="p-2 border-r border-white/10">獎金級距</th>
+                  <th class="p-1.5 border-r border-white/10" id="th-tier-100">7000元*達成率</th>
+                  <th class="p-1.5 border-r border-white/10" id="th-tier-90">5500元</th>
+                  <th class="p-1.5 border-r border-white/10" id="th-tier-80">4500元</th>
+                  <th class="p-1.5 border-r border-white/10" id="th-tier-70">3500元</th>
+                  <th class="p-1.5 border-r border-white/10" id="th-tier-60">1500元</th>
+                  <th class="p-1.5" id="th-tier-0">0元</th>
+                </tr>
+              </thead>
+              <tbody class="text-[10px] font-mono text-slate-300">
+                <tr>
+                  <td class="p-2 font-sans font-semibold text-slate-400 border-r border-white/10 bg-white/5">達成率</td>
+                  <td class="p-1.5 border-r border-white/10 transition-colors" id="td-tier-100">100%以上</td>
+                  <td class="p-1.5 border-r border-white/10 transition-colors" id="td-tier-90">90%</td>
+                  <td class="p-1.5 border-r border-white/10 transition-colors" id="td-tier-80">80%</td>
+                  <td class="p-1.5 border-r border-white/10 transition-colors" id="td-tier-70">70%</td>
+                  <td class="p-1.5 border-r border-white/10 transition-colors" id="td-tier-60">60%</td>
+                  <td class="p-1.5 transition-colors" id="td-tier-0">60%以下</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -374,15 +410,11 @@
             </div>
           </div>
 
-          <!-- 總達成率與計費規則 -->
+          <!-- 總達成率 -->
           <div class="space-y-1.5 text-xs font-mono">
             <div class="flex items-center justify-between">
               <span class="text-slate-400 font-sans">總達成率 <span class="text-[10px] text-slate-500">(平均)</span></span>
               <span id="res-total-rate" class="font-bold text-base theme-text-accent">60.0%</span>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-sans">
-              <span>門檻規則</span>
-              <span class="text-slate-300 font-mono text-[10px]">60%起領 $3,600 (每1% +$60)</span>
             </div>
           </div>
 
@@ -393,7 +425,7 @@
               預估實領獎金
             </span>
             <span id="res-final-bonus" class="font-mono text-xl font-black text-amber-400 theme-glow">
-              NT$ 3,600
+              NT$ 1,500
             </span>
           </div>
         </div>
@@ -617,37 +649,9 @@
       };
 
       document.getElementById('rate-sec').textContent = `$${perSecond.toFixed(4)}`;
-      document.getElementById('rate-min').textContent = `$${perMinute.toFixed(2)}`;
-      document.getElementById('rate-hour').textContent = `$${Math.round(perHour)}`;
-      document.getElementById('daily-max-wage').textContent = `NT$ ${Math.round(dailyWage).toLocaleString()}`;
-      document.getElementById('month-days-info').textContent = `工作天: ${workDays} 天 (休${config.offDays}天)`;
-      
-      // 目標金額 UI
-      const targetSalary = config.salary + (bonusData.includeInMonthSalary ? calculatedBonus : 0);
-      document.getElementById('month-target-info').textContent = `目標 NT$ ${Math.round(targetSalary).toLocaleString()}`;
-      
-      document.getElementById('display-start-time').textContent = `上班 ${config.startTime}`;
-      document.getElementById('display-end-time').textContent = `下班 ${config.endTime}`;
-      document.getElementById('footer-config-desc').textContent = `條件：月薪 NT$ ${config.salary.toLocaleString()} / 月休 ${config.offDays} 天 / ${config.startTime}~${config.endTime} / 每月 ${config.payDay} 號發薪`;
-
-      const lunchTag = document.getElementById('lunch-info-tag');
-      if (config.lunchEnabled && rates.lunchSecs > 0) {
-        const lunchMins = Math.round(rates.lunchSecs / 60);
-        lunchTag.textContent = `午休: ${config.lunchStart}~${config.lunchEnd} (${lunchMins}m)`;
-        lunchTag.classList.remove('hidden');
-      } else {
-        lunchTag.classList.add('hidden');
-      }
-
-      const bonusBadge = document.getElementById('bonus-active-badge');
-      if (bonusData.includeInMonthSalary && calculatedBonus > 0) {
-        bonusBadge.classList.remove('hidden');
-      } else {
-        bonusBadge.classList.add('hidden');
-      }
     }
 
-    // 新核心獎金計算邏輯：60%起算，每1%持續遞增60元
+    // 最新獎金級距階梯計算邏輯與 Highlight 效果
     function computeBonus() {
       const accVal = Number(document.getElementById('calc-acc-amount').value) || 0;
       const repairVal = Number(document.getElementById('calc-repair-count').value) || 0;
@@ -658,20 +662,32 @@
 
       let finalBonus = 0;
       const pct = totalRate * 100;
+      let activeTier = '0';
 
-      if (pct >= 60) {
-        // 滿 60% 基礎獎金 3600 元，每滿 1% 增加 60 元
-        const extraPercent = Math.floor(pct - 60);
-        finalBonus = 3600 + (extraPercent * 60);
-        // 上限以 100% 封頂 6000 元 (亦可視需求調整)
-        if (pct >= 100) {
-          finalBonus = 6000;
-        }
+      // 階梯級距判定
+      if (pct >= 100) {
+        finalBonus = Math.round(7000 * totalRate); // 100% 以上: 7000 * 達成率
+        activeTier = '100';
+      } else if (pct >= 90) {
+        finalBonus = 5500;
+        activeTier = '90';
+      } else if (pct >= 80) {
+        finalBonus = 4500;
+        activeTier = '80';
+      } else if (pct >= 70) {
+        finalBonus = 3500;
+        activeTier = '70';
+      } else if (pct >= 60) {
+        finalBonus = 1500;
+        activeTier = '60';
+      } else {
+        finalBonus = 0;
+        activeTier = '0';
       }
 
       calculatedBonus = finalBonus;
 
-      // 更新畫面
+      // 更新畫面數字
       document.getElementById('res-acc-rate').textContent = `${(accRate * 100).toFixed(1)}%`;
       document.getElementById('res-repair-rate').textContent = `${(repairRate * 100).toFixed(1)}%`;
       
@@ -686,6 +702,20 @@
       }
 
       document.getElementById('res-final-bonus').textContent = `NT$ ${finalBonus.toLocaleString()}`;
+
+      // 高亮對照表級距 (Highlight Table Tier)
+      const tiers = ['100', '90', '80', '70', '60', '0'];
+      tiers.forEach(t => {
+        const th = document.getElementById(`th-tier-${t}`);
+        const td = document.getElementById(`td-tier-${t}`);
+        if (t === activeTier) {
+          th.className = "p-1.5 border-r border-white/10 bg-amber-400 text-slate-950 font-black scale-105 transition-all shadow-lg";
+          td.className = "p-1.5 border-r border-white/10 bg-amber-400/20 text-amber-300 font-bold transition-all";
+        } else {
+          th.className = "p-1.5 border-r border-white/10 text-amber-300 font-bold opacity-80";
+          td.className = "p-1.5 border-r border-white/10 transition-colors text-slate-300";
+        }
+      });
 
       return finalBonus;
     }
