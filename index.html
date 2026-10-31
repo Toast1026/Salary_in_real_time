@@ -1,30 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>即時薪資監控儀表板</title>
+  <title>Live Salary Stream & 業績獎金試算</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          }
-        }
-      }
-    }
-  </script>
   <style>
     :root {
       --bg-base: #06090e;
@@ -132,7 +115,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* 跑條進度槽與流光樣式 */
     .progress-bar-track {
       background: rgba(15, 23, 42, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -144,11 +126,25 @@
       box-shadow: 0 0 14px var(--accent-glow);
       transition: width 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
     }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body data-theme="cyan" class="h-screen w-screen overflow-hidden flex flex-col justify-between p-3 sm:p-5 md:p-6 font-sans">
 
-  <!-- 頂部列：狀態標籤、色系切換選單與全螢幕按鈕 -->
+  <!-- 頂部列：狀態標籤、色系切換選單與功能按鈕 -->
   <header class="w-full max-w-5xl mx-auto flex items-center justify-between gap-3 flex-shrink-0">
     <div class="flex items-center gap-2.5">
       <div class="h-8 w-8 rounded-lg theme-bg-subtle border theme-border-accent flex items-center justify-center theme-text-accent">
@@ -166,7 +162,7 @@
       </div>
     </div>
 
-    <!-- 右側功能：色系選單、設定、全螢幕 -->
+    <!-- 右側功能：色系選單、獎金試算、設定、全螢幕 -->
     <div class="flex items-center gap-1.5 sm:gap-2">
       <!-- 色系快速選擇器 -->
       <div class="flex items-center bg-black/40 border border-slate-800 rounded-xl p-1 gap-1">
@@ -177,6 +173,12 @@
         <button onclick="setTheme('silver')" title="極簡黑銀" class="w-5 h-5 rounded-lg bg-slate-300 hover:scale-110 transition border border-white/20"></button>
       </div>
 
+      <!-- 獎金試算按鈕 -->
+      <button id="btn-bonus-calculator" class="p-2 rounded-xl bg-black/40 hover:bg-slate-800/60 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5" title="獎金試算">
+        <i class="ph-bold ph-calculator text-base theme-text-accent"></i>
+        <span class="text-xs font-medium hidden sm:inline">獎金試算</span>
+      </button>
+
       <button id="btn-settings" class="p-2 rounded-xl bg-black/40 hover:bg-slate-800/60 border border-slate-800 text-slate-300 hover:text-white transition" title="參數設定">
         <i class="ph ph-gear text-base"></i>
       </button>
@@ -186,7 +188,7 @@
     </div>
   </header>
 
-  <!-- 主要核心儀表看板 (嚴格無滾輪，置中適應) -->
+  <!-- 主要核心儀表看板 -->
   <main class="w-full max-w-5xl mx-auto my-auto py-2 sm:py-3 flex flex-col items-center justify-center flex-grow min-h-0">
     
     <!-- 今日即時薪資卡片 (主焦點) -->
@@ -215,7 +217,7 @@
           計算中...
         </p>
 
-        <!-- 工時進度跑條 (已全面強化可見度與高光層) -->
+        <!-- 工時進度跑條 -->
         <div class="w-full max-w-xl mt-4 sm:mt-5">
           <div class="flex justify-between text-[11px] sm:text-xs font-mono text-slate-400 mb-1.5">
             <span id="display-start-time">上班 10:30</span>
@@ -246,7 +248,7 @@
     <!-- 輔助資訊網格：發薪倒數 + 本月累積 + 速率小卡 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5 w-full mt-3 sm:mt-4 flex-shrink-0">
       
-      <!-- 卡片 1: 發薪日倒數 (每月10號) -->
+      <!-- 卡片 1: 發薪日倒數 -->
       <section class="theme-card rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-slate-400 mb-1">
           <span class="text-[11px] font-medium uppercase tracking-wider">Payday Countdown</span>
@@ -271,7 +273,10 @@
           <i class="ph-bold ph-calendar-check theme-text-accent text-sm"></i>
         </div>
         <div>
-          <div class="text-[11px] text-slate-400 mb-0.5">本月累計進帳 (含今日)</div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 mb-0.5">本月累計進帳 (含今日)</span>
+            <span id="bonus-active-badge" class="hidden text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-semibold">含估算獎金</span>
+          </div>
           <div class="font-mono text-xl sm:text-2xl font-bold theme-text-accent counter-ticker flex items-baseline">
             <span class="text-sm mr-1 opacity-80">NT$</span>
             <span id="month-earned">0</span>
@@ -316,14 +321,112 @@
   <footer class="w-full max-w-5xl mx-auto flex items-center justify-between gap-2 text-[11px] text-slate-500 pt-2 pb-1 border-t border-slate-900/60 flex-shrink-0">
     <div class="flex items-center gap-2 truncate">
       <span class="inline-block w-1.5 h-1.5 rounded-full bg-current theme-text-accent flex-shrink-0"></span>
-      <span class="truncate">條件：月薪 NT$ 33,000 / 月休 10 天 / 10:30~19:30 (午休 1hr) / 每月 10 號發薪</span>
+      <span class="truncate" id="footer-config-desc">條件：月薪 NT$ 33,000 / 月休 10 天 / 10:30~19:30 (午休 1hr) / 每月 10 號發薪</span>
     </div>
     <div class="font-mono text-[10px] text-slate-600 flex-shrink-0">
       Clean Metric Stream
     </div>
   </footer>
 
-  <!-- 參數微調設定 Modal -->
+  <!-- 1. 獎金試算 Modal -->
+  <div id="bonus-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="theme-card border border-slate-700 bg-slate-900 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- 標題與關閉按鈕 -->
+      <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="ph-bold ph-calculator theme-text-accent"></i>
+          業績與維修獎金試算
+        </h3>
+        <button id="btn-close-bonus-modal" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+          <i class="ph ph-x text-base"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- 僅保留兩個輸入欄位：週邊金額與維修件數 -->
+        <div class="grid grid-cols-2 gap-3 bg-black/30 p-3.5 rounded-xl border border-white/5">
+          <!-- 週邊金額 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">週邊實際金額 (元)</label>
+            <input type="number" id="calc-acc-amount" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="54000" placeholder="例如: 54000">
+          </div>
+
+          <!-- 維修件數 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">維修實際件數 (件)</label>
+            <input type="number" id="calc-repair-count" class="w-full px-3 py-2 rounded-lg bg-black/60 border border-slate-700 text-white font-mono text-xs focus:border-sky-400 focus:outline-none" value="60" placeholder="例如: 60">
+          </div>
+        </div>
+
+        <!-- 計算結果看板 -->
+        <div class="bg-black/50 p-4 rounded-xl border theme-border-accent space-y-3">
+          
+          <!-- 各項單項達成率 -->
+          <div class="grid grid-cols-2 gap-2 text-center text-xs border-b border-white/5 pb-2.5 font-mono">
+            <div class="bg-black/30 p-2 rounded-lg">
+              <div class="text-[10px] text-slate-400">週邊達成率 <span class="text-[9px] text-slate-500">(90k)</span></div>
+              <div id="res-acc-rate" class="font-bold text-white mt-0.5">60.0%</div>
+            </div>
+            <div class="bg-black/30 p-2 rounded-lg">
+              <div class="text-[10px] text-slate-400">維修達成率 <span class="text-[9px] text-slate-500">(100件)</span></div>
+              <div id="res-repair-rate" class="font-bold text-white mt-0.5">60.0%</div>
+            </div>
+          </div>
+
+          <!-- 總達成率與計費規則 -->
+          <div class="space-y-1.5 text-xs font-mono">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 font-sans">總達成率 <span class="text-[10px] text-slate-500">(平均)</span></span>
+              <span id="res-total-rate" class="font-bold text-base theme-text-accent">60.0%</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 font-sans">
+              <span>門檻規則</span>
+              <span class="text-slate-300 font-mono text-[10px]">60%起領 $3,600 (每1% +$60)</span>
+            </div>
+          </div>
+
+          <!-- 最終預估實領獎金 -->
+          <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1">
+              <i class="ph-bold ph-trophy text-amber-400"></i>
+              預估實領獎金
+            </span>
+            <span id="res-final-bonus" class="font-mono text-xl font-black text-amber-400 theme-glow">
+              NT$ 3,600
+            </span>
+          </div>
+        </div>
+
+        <!-- 開關：併入本月薪資預估 -->
+        <div class="flex items-center justify-between bg-black/30 p-3 rounded-xl border border-white/5">
+          <div class="flex items-center gap-2">
+            <i class="ph-bold ph-trend-up theme-text-accent text-base"></i>
+            <div>
+              <div class="text-xs font-semibold text-white">將獎金加入本月薪資估算</div>
+              <div class="text-[10px] text-slate-400">啟用後主儀表板將合併顯示月薪與獎金</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggle-include-bonus" class="sr-only peer">
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-500"></div>
+          </label>
+        </div>
+
+        <div class="pt-1 flex gap-2">
+          <button type="button" id="btn-reset-bonus-calc" class="w-1/3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 transition">
+            重設預設
+          </button>
+          <button type="button" id="btn-save-bonus-calc" class="w-2/3 py-2 rounded-xl theme-bg-subtle theme-text-accent border theme-border-accent hover:brightness-125 font-bold text-xs transition">
+            儲存試算結果
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. 參數微調設定 Modal -->
   <div id="settings-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="theme-card border border-slate-700 bg-slate-900 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
@@ -401,7 +504,7 @@
   </div>
 
   <script>
-    // 預設組態
+    // 預設薪資與時間組態
     const DEFAULT_CONFIG = {
       salary: 33000,
       startTime: "10:30",
@@ -414,12 +517,29 @@
       theme: 'cyan'
     };
 
+    // 固定目標常數 (不可自訂修改)
+    const ACC_TARGET = 90000;
+    const REPAIR_TARGET = 100;
+
+    // 預設獎金試算資料
+    const DEFAULT_BONUS_DATA = {
+      accAmount: 54000,
+      repairCount: 60,
+      includeInMonthSalary: false
+    };
+
     let config = { ...DEFAULT_CONFIG };
+    let bonusData = { ...DEFAULT_BONUS_DATA };
+    let calculatedBonus = 0; // 當前計算出的獎金金額
 
     try {
-      const saved = localStorage.getItem('salary_counter_config');
-      if (saved) {
-        config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(saved));
+      const savedConfig = localStorage.getItem('salary_counter_config');
+      if (savedConfig) {
+        config = Object.assign({}, DEFAULT_CONFIG, JSON.parse(savedConfig));
+      }
+      const savedBonus = localStorage.getItem('salary_counter_bonus');
+      if (savedBonus) {
+        bonusData = Object.assign({}, DEFAULT_BONUS_DATA, JSON.parse(savedBonus));
       }
     } catch (e) {
       console.warn("無法讀取快取", e);
@@ -434,7 +554,6 @@
       } catch (e) {}
     }
 
-    // 初始化色系
     setTheme(config.theme || 'cyan');
 
     // 計算當月工作總天數
@@ -446,13 +565,11 @@
       return { daysInMonth, workDays };
     }
 
-    // 時間轉秒
     function timeToSeconds(timeStr) {
       const parts = timeStr.split(':').map(Number);
       return (parts[0] * 3600) + (parts[1] * 60);
     }
 
-    // 速率快取
     let rates = {
       workSecsPerDay: 0,
       lunchSecs: 0,
@@ -482,7 +599,6 @@
         }
       }
 
-      // 扣除午休後的淨工作秒數
       const effectiveWorkSecs = Math.max(3600, totalSpanSecs - lunchSecs);
       const dailyWage = config.salary / workDays;
       const perSecond = dailyWage / effectiveWorkSecs;
@@ -500,15 +616,19 @@
         perHour
       };
 
-      // 更新費率 UI
       document.getElementById('rate-sec').textContent = `$${perSecond.toFixed(4)}`;
       document.getElementById('rate-min').textContent = `$${perMinute.toFixed(2)}`;
       document.getElementById('rate-hour').textContent = `$${Math.round(perHour)}`;
       document.getElementById('daily-max-wage').textContent = `NT$ ${Math.round(dailyWage).toLocaleString()}`;
       document.getElementById('month-days-info').textContent = `工作天: ${workDays} 天 (休${config.offDays}天)`;
-      document.getElementById('month-target-info').textContent = `目標 NT$ ${config.salary.toLocaleString()}`;
+      
+      // 目標金額 UI
+      const targetSalary = config.salary + (bonusData.includeInMonthSalary ? calculatedBonus : 0);
+      document.getElementById('month-target-info').textContent = `目標 NT$ ${Math.round(targetSalary).toLocaleString()}`;
+      
       document.getElementById('display-start-time').textContent = `上班 ${config.startTime}`;
       document.getElementById('display-end-time').textContent = `下班 ${config.endTime}`;
+      document.getElementById('footer-config-desc').textContent = `條件：月薪 NT$ ${config.salary.toLocaleString()} / 月休 ${config.offDays} 天 / ${config.startTime}~${config.endTime} / 每月 ${config.payDay} 號發薪`;
 
       const lunchTag = document.getElementById('lunch-info-tag');
       if (config.lunchEnabled && rates.lunchSecs > 0) {
@@ -518,9 +638,58 @@
       } else {
         lunchTag.classList.add('hidden');
       }
+
+      const bonusBadge = document.getElementById('bonus-active-badge');
+      if (bonusData.includeInMonthSalary && calculatedBonus > 0) {
+        bonusBadge.classList.remove('hidden');
+      } else {
+        bonusBadge.classList.add('hidden');
+      }
     }
 
-    // 計算發薪日倒數
+    // 新核心獎金計算邏輯：60%起算，每1%持續遞增60元
+    function computeBonus() {
+      const accVal = Number(document.getElementById('calc-acc-amount').value) || 0;
+      const repairVal = Number(document.getElementById('calc-repair-count').value) || 0;
+
+      const accRate = accVal / ACC_TARGET;
+      const repairRate = repairVal / REPAIR_TARGET;
+      const totalRate = (accRate + repairRate) / 2;
+
+      let finalBonus = 0;
+      const pct = totalRate * 100;
+
+      if (pct >= 60) {
+        // 滿 60% 基礎獎金 3600 元，每滿 1% 增加 60 元
+        const extraPercent = Math.floor(pct - 60);
+        finalBonus = 3600 + (extraPercent * 60);
+        // 上限以 100% 封頂 6000 元 (亦可視需求調整)
+        if (pct >= 100) {
+          finalBonus = 6000;
+        }
+      }
+
+      calculatedBonus = finalBonus;
+
+      // 更新畫面
+      document.getElementById('res-acc-rate').textContent = `${(accRate * 100).toFixed(1)}%`;
+      document.getElementById('res-repair-rate').textContent = `${(repairRate * 100).toFixed(1)}%`;
+      
+      const resTotalRateEl = document.getElementById('res-total-rate');
+      resTotalRateEl.textContent = `${pct.toFixed(1)}%`;
+      if (pct >= 100) {
+        resTotalRateEl.className = 'font-bold text-base text-amber-400';
+      } else if (pct >= 60) {
+        resTotalRateEl.className = 'font-bold text-base theme-text-accent';
+      } else {
+        resTotalRateEl.className = 'font-bold text-base text-rose-400';
+      }
+
+      document.getElementById('res-final-bonus').textContent = `NT$ ${finalBonus.toLocaleString()}`;
+
+      return finalBonus;
+    }
+
     function updatePaydayCountdown(now) {
       const year = now.getFullYear();
       const month = now.getMonth();
@@ -549,12 +718,10 @@
       document.getElementById('next-payday-date').textContent = `${targetMonthText} 月 ${config.payDay} 號 00:00`;
     }
 
-    // 核心動畫更新迴圈
     let lastSecondCheck = 0;
     function renderLoop() {
       const now = new Date();
 
-      // 時鐘
       const clockHours = String(now.getHours()).padStart(2, '0');
       const clockMins = String(now.getMinutes()).padStart(2, '0');
       const clockSecs = String(now.getSeconds()).padStart(2, '0');
@@ -573,7 +740,6 @@
       const badgeText = document.getElementById('work-status-badge-text');
 
       if (nowSec < startSec) {
-        // 上班前
         todayEarned = 0;
         progress = 0;
         const diff = startSec - nowSec;
@@ -587,7 +753,6 @@
         document.getElementById('shift-time-remaining').textContent = `待工時: ${totalNetHours}h`;
 
       } else if (nowSec >= endSec) {
-        // 下班後
         todayEarned = rates.dailyWage;
         progress = 100;
         statusText = "已達下班時間 • 今日薪資已全額入袋，辛苦了！";
@@ -598,11 +763,9 @@
         document.getElementById('shift-time-remaining').textContent = `剩餘: 0h 0m`;
 
       } else {
-        // 上班期間
         const isLunchTime = config.lunchEnabled && (nowSec >= lunchStartSec && nowSec < lunchEndSec);
 
         if (isLunchTime) {
-          // 午休中
           effectiveElapsedSecs = Math.max(0, lunchStartSec - startSec);
           todayEarned = effectiveElapsedSecs * rates.perSecond;
           progress = (effectiveElapsedSecs / rates.workSecsPerDay) * 100;
@@ -613,7 +776,6 @@
           badgeText.textContent = "午休暫停中";
 
         } else {
-          // 計薪中
           if (config.lunchEnabled && nowSec >= lunchEndSec) {
             effectiveElapsedSecs = (nowSec - startSec) - rates.lunchSecs;
           } else {
@@ -632,27 +794,29 @@
         document.getElementById('shift-time-remaining').textContent = `剩餘: ${Math.floor(remainSecs/3600)}h ${Math.floor((remainSecs%3600)/60)}m`;
       }
 
-      // 嚴格保證進度條在 0% ~ 100% 之間
       progress = Math.min(100, Math.max(0, progress));
 
-      // 更新金額看板
       const intPart = Math.floor(todayEarned).toLocaleString();
       const decPart = (todayEarned % 1).toFixed(4).substring(1);
       document.getElementById('today-amount-int').textContent = intPart;
       document.getElementById('today-amount-dec').textContent = decPart;
       document.getElementById('today-status-msg').textContent = statusText;
 
-      // 更新跑條 (確保 width 有值，若 progress > 0 給予最低寬度保障視覺)
       const progressBar = document.getElementById('progress-bar-fill');
       progressBar.style.width = `${progress}%`;
       progressBar.style.display = progress > 0 ? 'block' : (nowSec >= startSec ? 'block' : 'none');
       document.getElementById('progress-percentage').textContent = `${progress.toFixed(1)}%`;
 
-      // 更新本月累積進帳
+      // 本月累計計算 (可加算獎金)
       const currentDay = now.getDate();
       const workRatio = rates.workDays / rates.daysInMonth;
       const pastWorkDays = Math.max(0, Math.floor((currentDay - 1) * workRatio));
-      const monthAccumulated = (pastWorkDays * rates.dailyWage) + todayEarned;
+      let monthAccumulated = (pastWorkDays * rates.dailyWage) + todayEarned;
+      
+      if (bonusData.includeInMonthSalary) {
+        monthAccumulated += calculatedBonus;
+      }
+      
       document.getElementById('month-earned').textContent = Math.floor(monthAccumulated).toLocaleString();
 
       if (Math.floor(nowSec) !== lastSecondCheck) {
@@ -663,7 +827,60 @@
       requestAnimationFrame(renderLoop);
     }
 
-    // Modal 與設定操作
+    // Modal 元素操作
+    const bonusModal = document.getElementById('bonus-modal');
+    const btnBonusCalc = document.getElementById('btn-bonus-calculator');
+    const btnCloseBonusModal = document.getElementById('btn-close-bonus-modal');
+    const calcAccAmount = document.getElementById('calc-acc-amount');
+    const calcRepairCount = document.getElementById('calc-repair-count');
+    const toggleIncludeBonus = document.getElementById('toggle-include-bonus');
+    const btnSaveBonusCalc = document.getElementById('btn-save-bonus-calc');
+    const btnResetBonusCalc = document.getElementById('btn-reset-bonus-calc');
+
+    function populateBonusForm() {
+      calcAccAmount.value = bonusData.accAmount;
+      calcRepairCount.value = bonusData.repairCount;
+      toggleIncludeBonus.checked = bonusData.includeInMonthSalary;
+      computeBonus();
+    }
+
+    btnBonusCalc.addEventListener('click', () => {
+      populateBonusForm();
+      bonusModal.classList.remove('hidden');
+    });
+
+    btnCloseBonusModal.addEventListener('click', () => {
+      bonusModal.classList.add('hidden');
+    });
+
+    bonusModal.addEventListener('click', (e) => {
+      if (e.target === bonusModal) bonusModal.classList.add('hidden');
+    });
+
+    // 實時監聽輸入變化
+    [calcAccAmount, calcRepairCount].forEach(input => {
+      input.addEventListener('input', computeBonus);
+    });
+
+    btnSaveBonusCalc.addEventListener('click', () => {
+      bonusData.accAmount = Number(calcAccAmount.value) || 0;
+      bonusData.repairCount = Number(calcRepairCount.value) || 0;
+      bonusData.includeInMonthSalary = toggleIncludeBonus.checked;
+
+      try {
+        localStorage.setItem('salary_counter_bonus', JSON.stringify(bonusData));
+      } catch (err) {}
+
+      recalculateRates();
+      bonusModal.classList.add('hidden');
+    });
+
+    btnResetBonusCalc.addEventListener('click', () => {
+      bonusData = { ...DEFAULT_BONUS_DATA };
+      populateBonusForm();
+    });
+
+    // 設定 Modal 相關邏輯
     const modal = document.getElementById('settings-modal');
     const btnSettings = document.getElementById('btn-settings');
     const btnCloseModal = document.getElementById('btn-close-modal');
@@ -754,6 +971,7 @@
     });
 
     window.onload = function() {
+      computeBonus();
       recalculateRates();
       updatePaydayCountdown(new Date());
       requestAnimationFrame(renderLoop);
